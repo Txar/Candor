@@ -1,0 +1,15 @@
+{
+  "lineSeparator": ";",
+  "valueSeparator": ",",
+  "space": " ",
+  "extractor": ".",
+  "floatingPoint": ".",
+
+  "stringOpen": "\"",
+  "stringClose": "\"",
+  "definitionOpen": "{",
+  "definitionClose": "}",
+  "closeClose": ")",
+  "callOpen": "(",
+  "forbiddenCharacters": " ${}[]();:,.*/'\"\\"
+}

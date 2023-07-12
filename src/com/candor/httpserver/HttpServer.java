@@ -1,16 +1,20 @@
-package com.candor;
+package com.candor.httpserver;
+
+import org.json.JSONObject;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-public class GreetServer {
+public class HttpServer {
     private ServerSocket serverSocket;
     private Socket clientSocket;
-    private PrintWriter out;
+    private OutputStream out;
     private BufferedReader in;
     private FileLoader fileLoader;
+    private JSONObject contentTypes;
 
     private Map<String, String> readHeaders(String s) {
         Map<String, String> headers = new HashMap<>();
@@ -40,8 +44,32 @@ public class GreetServer {
         return headers;
     }
 
+    public void sendText(String text) {
+        try {
+            out.write(text.getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+
+    private String getContentType(String path) {
+        String s = "text/plaintext";
+        try {
+            s = contentTypes.get(fileLoader.fileType(path)).toString();
+        } catch (Exception e) {
+            System.out.println(e);
+            try {
+                s = contentTypes.get("default").toString();
+            } catch (Exception e2) {
+                System.out.println(e2);
+            }
+        }
+        return s;
+    }
+
     public void start(int port) {
-        fileLoader = new FileLoader("C:\\Users\\Maks\\Documents\\GitHub\\Candor\\web_page");
+        fileLoader = new FileLoader("C:\\Users\\Maks\\Documents\\GitHub\\Candor\\web_server", "config.json");
+        contentTypes = new JSONObject(new String(fileLoader.getFile(fileLoader.config.get("content_types_config").toString(), false, true)));
         try {
             serverSocket = new ServerSocket(port);
         } catch (Exception e) {
@@ -53,7 +81,7 @@ public class GreetServer {
 
             try {
                 clientSocket = serverSocket.accept();
-                out = new PrintWriter(clientSocket.getOutputStream(), true);
+                out = clientSocket.getOutputStream();
                 in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 greeting = in.readLine();
             } catch (Exception e) {
@@ -62,26 +90,39 @@ public class GreetServer {
 
             Map headers = readHeaders(greeting);
             if ("hello server".equals(greeting)) {
-                out.println("<html><body>hello client</body></html>");
+                sendText("<html><body>hello client</body></html>");
             } else {
-                out.println("HTTP/3 200 OK\nContent-Type: text/html\n\n");
                 if (headers.containsKey("PATH") && headers.get("PATH").toString().startsWith("/public")) {
                     try {
-                        out.println(new String(fileLoader.getFile(headers.get("PATH").toString())));
+                        String path = headers.get("PATH").toString();
+                        if (fileLoader.isAccessible(path)) {
+                            String contentType = getContentType(path);
+                            sendText("HTTP/2 200 OK\nContent-Type: " + contentType + " \n\n");
+
+                            out.write(fileLoader.getFile(path));
+                        }
+                        else {
+                            sendText("HTTP/2 404 Not Found\nContent-Type: text/html\n\n");
+                            out.write(fileLoader.getFile(fileLoader.config.get("not_found").toString(), false, true));
+                        }
                     } catch (Exception e) {
                         System.out.println(e);
                     }
                 }
                 else {
 
-                    out.println("<!DOCTYPE html><html><head><meta charset='utf-8'><title>test</title><body><pre>");
+                    sendText("<!DOCTYPE html><html><head><meta charset='utf-8'><title>test</title><body><pre>");
 
                     for (Object i : headers.keySet()) {
-                        out.println(i + "- value is " + headers.get(i));
+                        sendText(i + "- value is " + headers.get(i));
                     }
-                    out.println("</pre><h1>hi, client</h1></body></html>");
+                    sendText("</pre><h1>hi, client</h1></body></html>");
                 }
-                out.close();
+                try {
+                    out.close();
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
             }
         }
     }
@@ -104,7 +145,7 @@ public class GreetServer {
 
         //if (choice.equals("server")) {
         System.out.println("Starting server.");
-        GreetServer server = new GreetServer();
+        HttpServer server = new HttpServer();
         server.start(2100);
         /*}
         else if (choice.equals("client")) {

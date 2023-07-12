@@ -1,0 +1,6 @@
+{
+  "port": 2100,
+  "page_home": "./public",
+  "not_found": "templates/errors/404.html",
+  "content_types_config": "configuration/content_types.json"
+}
