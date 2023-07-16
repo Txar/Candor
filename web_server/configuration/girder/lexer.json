@@ -1,15 +1,21 @@
 {
-  "lineSeparator": ";",
-  "valueSeparator": ",",
-  "space": " ",
-  "extractor": ".",
-  "floatingPoint": ".",
+  "bindings": {
+    "lineSeparator": ";",
+    "valueSeparator": ",",
+    "space": " ",
+    "extractor": ".",
+    "floatingPoint": ".",
+    "stringBracket": "\"",
+    "disableNextChar": "\\",
 
-  "stringOpen": "\"",
-  "stringClose": "\"",
-  "definitionOpen": "{",
-  "definitionClose": "}",
-  "closeClose": ")",
-  "callOpen": "(",
-  "forbiddenCharacters": " ${}[]();:,.*/'\"\\"
+    "definitionOpen": "{",
+    "definitionClose": "}",
+    "callOpen": "(",
+    "callClose": ")",
+    "forbiddenCharacters": " ${}[]();:,.*/'\"\\"
+  },
+
+  "operators": [
+    "+", "=", "-", "*", "/", ">", "<", "=="
+  ]
 }
